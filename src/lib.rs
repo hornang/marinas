@@ -40,7 +40,7 @@ mod iso8211 {
     }
 
     #[derive(DekuRead)]
-    pub struct RawHeader {
+    pub struct Leader {
         pub record_length: [u8; 5],
         pub interchange_level: u8,
         pub leader_identifier: u8,
@@ -149,9 +149,9 @@ mod iso8211 {
         }
     }
 
-    impl fmt::Debug for RawHeader {
+    impl fmt::Debug for Leader {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.debug_struct("RawHeader")
+            f.debug_struct("Leader")
                 .field("record_length", &self.record_length())
                 .field("interchange_level", &self.interchange_level())
                 .field("leader_identifier", &self.leader_identifier())
@@ -185,7 +185,7 @@ mod iso8211 {
         pub position: usize,
     }
 
-    impl RawHeader {
+    impl Leader {
         pub fn record_length(&self) -> usize {
             bytes_to_int(Vec::from(self.record_length))
         }
@@ -235,8 +235,8 @@ mod iso8211 {
 
     pub fn read_header(
         reader: &mut File,
-    ) -> Result<(RawHeader, usize), Box<dyn std::error::Error>> {
-        let (_rest, header) = RawHeader::from_reader((reader, 0))?;
+    ) -> Result<(Leader, usize), Box<dyn std::error::Error>> {
+        let (_rest, header) = Leader::from_reader((reader, 0))?;
 
         let bytes_read = _rest / 8;
 
@@ -328,7 +328,7 @@ mod iso8211 {
 
     pub fn read_directory(
         reader: &mut File,
-        header: &RawHeader,
+        header: &Leader,
         directory_size: usize,
     ) -> Result<Vec<DirEntry>, ParseError> {
 
