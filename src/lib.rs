@@ -66,6 +66,7 @@ mod iso8211 {
 
     #[derive(Debug)]
     pub struct FieldTypeData {
+        header: FieldType,
         name: String,
         array_descriptor: String,
         format_controls: String,
@@ -270,7 +271,6 @@ mod iso8211 {
             }
 
             let (bits_read, header) = FieldType::from_reader((reader, 0))?;
-            println!("{:#?}", header);
             let bytes_read = bits_read / 8;
 
             let mut buffer = vec![0u8; field.length - bytes_read - 1];
@@ -299,6 +299,7 @@ mod iso8211 {
             }
 
             field_types.push(FieldTypeData {
+                header: header,
                 name: name,
                 array_descriptor: array_descriptor,
                 format_controls: format_controls,
@@ -425,7 +426,7 @@ mod tests {
         let directories = iso8211::read_directory(&mut file, &header, directory_size).unwrap();
         println!("Directories:\n{:#?}", directories);
 
-        let field_types = iso8211::read_field_types(&mut file, &directories);
+        let field_types: Result<Vec<iso8211::FieldTypeData>, iso8211::ParseError> = iso8211::read_field_types(&mut file, &directories);
 
         match field_types {
             Ok(field_types) => println!("Field types: \n{:#?}", field_types),
