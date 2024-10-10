@@ -55,7 +55,7 @@ mod iso8211 {
     }
 
     #[derive(DekuRead)]
-    pub struct FieldType {
+    pub struct FieldTypeHeader {
         data_structure: u8,
         data_type: u8,
         auxiliry_controls: [u8; 2],
@@ -65,8 +65,8 @@ mod iso8211 {
     }
 
     #[derive(Debug)]
-    pub struct FieldTypeData {
-        header: FieldType,
+    pub struct FieldType {
+        header: FieldTypeHeader,
         name: String,
         array_descriptor: String,
         format_controls: String,
@@ -115,7 +115,7 @@ mod iso8211 {
         }
     }
 
-    impl FieldType {
+    impl FieldTypeHeader {
         pub fn data_structure(&self) -> char {
             char::from(self.data_structure)
         }
@@ -136,9 +136,9 @@ mod iso8211 {
         }
     }
 
-    impl fmt::Debug for FieldType {
+    impl fmt::Debug for FieldTypeHeader {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.debug_struct("FieldType")
+            f.debug_struct("FieldTypeHeader")
                 .field("data_structure", &self.data_structure())
                 .field("data_type", &self.data_type())
                 .field("auxiliry_controls", &self.auxiliry_controls())
@@ -252,7 +252,7 @@ mod iso8211 {
     pub fn read_field_types(
         reader: &mut File,
         fields: &Vec<DirEntry>,
-    ) -> Result<Vec<FieldTypeData>, ParseError> {
+    ) -> Result<Vec<FieldType>, ParseError> {
         use std::io::{self, Seek, SeekFrom};
         let initial_position = reader.stream_position()?;
 
@@ -270,7 +270,7 @@ mod iso8211 {
                 ));
             }
 
-            let (bits_read, header) = FieldType::from_reader((reader, 0))?;
+            let (bits_read, header) = FieldTypeHeader::from_reader((reader, 0))?;
             let bytes_read = bits_read / 8;
 
             let mut buffer = vec![0u8; field.length - bytes_read - 1];
@@ -298,7 +298,7 @@ mod iso8211 {
                 }
             }
 
-            field_types.push(FieldTypeData {
+            field_types.push(FieldType {
                 header: header,
                 name: name,
                 array_descriptor: array_descriptor,
@@ -426,7 +426,7 @@ mod tests {
         let directories = iso8211::read_directory(&mut file, &header, directory_size).unwrap();
         println!("Directories:\n{:#?}", directories);
 
-        let field_types: Result<Vec<iso8211::FieldTypeData>, iso8211::ParseError> = iso8211::read_field_types(&mut file, &directories);
+        let field_types: Result<Vec<iso8211::FieldType>, iso8211::ParseError> = iso8211::read_field_types(&mut file, &directories);
 
         match field_types {
             Ok(field_types) => println!("Field types: \n{:#?}", field_types),
