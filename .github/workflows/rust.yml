@@ -19,4 +19,8 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: |
+        wget https://www.charts.noaa.gov/ENCs/BS_ENCs.zip
+        unzip BS_ENCs.zip
+        export ENC_FILE="ENC_ROOT/US4PP2U0/US4PP2U0.000"
+        cargo test --verbose -- --nocapture

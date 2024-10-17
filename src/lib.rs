@@ -418,7 +418,11 @@ mod tests {
 
     #[test]
     fn fiddle() {
-        let mut file = std::fs::File::open("data/ENC_ROOT/US2EC03M/US2EC03M.000").unwrap();
+        use std::env;
+
+        let path = env::var("ENC_FILE").expect("ENC_FILE not set");
+
+        let mut file = std::fs::File::open(path.to_string()).unwrap();
 
         let (header, directory_size) = iso8211::read_header(&mut file).unwrap();
         println!("Data descriptive record:\n{:#?}", header);
